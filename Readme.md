@@ -16,6 +16,14 @@
     2. Port Mapping
     3. Env Variables
 
+10. Docker Networking
+    1. Bridge
+    2. Host
+11. Volume Mounting
+12. Efficient Caching in Layers
+13. Docker Multi-Stage Builds
+
+
 # 1. Problem Statement
 
 - There can be versioning issue if multiple user want to implement a project on there machine.
@@ -26,7 +34,7 @@
 
 - Containers are lightweight , can be build , share , deploy on cloud , destory e.t.c
 
-# 2 Installation
+# 2. Installation
 
 - Docker Daemon - Images pull , make
 - Docker Desktop - GUI , Show images
@@ -57,7 +65,7 @@
             ```
         - `-it` -> for interactive
 
-# 3.  Images vs Container
+# 3. Images vs Container
 - Images :
         - Like a operating system
         - To run image we use container.
@@ -153,3 +161,121 @@
 
 - To run Config - `Docker compose up`
 - TO stop - `Docker compose down`
+
+# 10. Docker Networking
+
+- Dokcer's networking subsystem is pluggable, using drivers. 
+- Several drivers exist by defult , and provide core network functionality :
+    - bridge:  establishes a bridge b/w local machine and docker.
+        - Commands:
+            - ```Bash
+                    docker network inspect bridge
+
+                    PS C:\Users\ayush> docker network ls
+                    NETWORK ID     NAME      DRIVER    SCOPE
+                    bfedb0b72bcd   bridge    bridge    local
+                    cad519e67058   host      host      local
+                    e02ef5890909   none      null      local
+              ```
+            
+        - By default , we use bridge netwokring.
+        - We have to do port mapping to expose the port.
+
+    - host: 
+        - Doesn't need port mapping to run.
+        - ```Bash
+             docker run -it --network=host busybox
+            / # ping google.com
+            PING google.com (142.251.42.14): 56 data bytes
+            64 bytes from 142.251.42.14: seq=0 ttl=64 time=74.245 ms
+          ```
+        - Directly connected to my local host machine.
+
+    - none: 
+        - no network address.
+
+    - Creating custom network:
+        - After creating your custom network you can communicate with the other containers.
+        - We can communicate conatiners only using thier name.
+        - commands:
+            - ```Bash
+                    PS C:\Users\ayush> docker network create -d bridge customnetwork
+                    2150d2b9b8572551d4420bbeb7cfe956fcacda7622057e2fda1f4a58b9ae783d
+                    PS C:\Users\ayush> docker network ls
+                    NETWORK ID     NAME            DRIVER    SCOPE
+                    bfedb0b72bcd   bridge          bridge    local
+                    2150d2b9b857   customnetwork   bridge    local
+                    cad519e67058   host            host      local
+                    e02ef5890909   none            null      local
+                    PS C:\Users\ayush> docker run -it --network=customnetwork --name tony_stark ubuntu
+                    root@d08c35ee536d:/#
+               ```
+
+
+# 11. Volume Mounting
+- Each container has it's own memory. When container destory then memory is also destroy.
+
+- ```Bash
+            Local Host Machine
+            -------------------
+        
+        PS C:\Users\ayush\Downloads> cd test-folder
+        PS C:\Users\ayush\Downloads\test-folder> pwd
+
+        Path
+        ----
+        C:\Users\ayush\Downloads\test-folder
+
+
+        PS C:\Users\ayush\Downloads\test-folder> ls
+
+
+            Directory: C:\Users\ayush\Downloads\test-folder
+
+
+        Mode                 LastWriteTime         Length Name
+        ----                 -------------         ------ ----
+        d-----        19-04-2024     13:43                hello-fr
+                                                        om-docke
+                                                        r
+
+
+        PS C:\Users\ayush\Downloads\test-folder> ls
+
+
+            Directory: C:\Users\ayush\Downloads\test-folder
+
+
+        Mode                 LastWriteTime         Length Name
+        ----                 -------------         ------ ----
+        d-----        19-04-2024     13:43                hello-fr
+                                                        om-docke
+                                                        r
+        -a----        19-04-2024     13:44              0 index.js
+
+        
+                Docker Ubuntu
+             -----------------------
+
+        PS C:\Users\ayush> docker run -it -v C:\Users\ayush\Downloads\test-folder:/home/abc ubuntu
+        root@cee88b9de7f6:/# cd home
+        root@cee88b9de7f6:/home# cd ls
+        bash: cd: ls: No such file or directory
+        root@cee88b9de7f6:/home# ls
+        abc
+        root@cee88b9de7f6:/home# cd abc
+        root@cee88b9de7f6:/home/abc# mkdir hello-from-docker
+        root@cee88b9de7f6:/home/abc# touch index.js
+  ```
+
+
+- If the data is deleted from docker machine then the local host machine data will not be losted.
+
+# 12. Efficient Caching in Layers
+
+- By default layers are cached once the layer is used.
+- If the changes happend in that layer then it will re-run itself as well as all bottom layers and make cache.
+- Layers order matters in any project. 
+
+# 13. Docker Multi-Stage Builds
+
